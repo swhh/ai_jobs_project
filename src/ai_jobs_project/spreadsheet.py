@@ -154,23 +154,17 @@ def create_rows(jobs):
 
 if __name__ == "__main__":
   service = create_sheet_service()
+  
   if not SPREADSHEET_ID:
     try:
        SPREADSHEET_ID = create_spreadsheet(service, title="Jobs List", columns=list(Job.model_fields.keys()))
     except Exception as e:
        print(e)
+
   test_job = create_test_job()
-  job_dict = test_job.model_dump()
-  row = []
-  for col in Job.model_fields.keys():
-     value = job_dict[col]
-     if isinstance(value, list):
-        row.append(", ".join(value))  # Join list items with commas
-     else:
-        row.append(value)
-        
+  rows = create_rows([test_job])        
   
-  update_sheet(service, SPREADSHEET_ID, rows = [row], range='Sheet1!A:L')
+  update_sheet(service, SPREADSHEET_ID, rows=rows, range='Sheet1!A:L')
 
  
        
