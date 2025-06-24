@@ -3,7 +3,7 @@ name = "ai-jobs-project"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "swhh",email = "seamus.holland1@gmail.com"}
+    {name = "swhh",email = "email@notprovided.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
