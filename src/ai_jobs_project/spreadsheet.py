@@ -134,8 +134,6 @@ def create_sheet_service():
   except HttpError as err:
     print(err)
 
-  
-
 
 def create_rows(jobs):
     rows = []
@@ -154,7 +152,7 @@ def create_rows(jobs):
 
 if __name__ == "__main__":
   service = create_sheet_service()
-  
+
   if not SPREADSHEET_ID:
     try:
        SPREADSHEET_ID = create_spreadsheet(service, title="Jobs List", columns=list(Job.model_fields.keys()))

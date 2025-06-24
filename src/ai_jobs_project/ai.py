@@ -34,13 +34,12 @@ def process_response(response_text):
     if json_match:
         try:
             json_str = json_match.group(0)
-            # Parse the JSON string into a list of dictionaries
             jobs_data = json.loads(json_str)
-            # Convert each dictionary into a Job object
+            
             jobs = []
             for job_data in jobs_data:
                 try:
-                    job = Job(**job_data)
+                    job = Job(**job_data) # Convert each dictionary into a Job object
                     jobs.append(job)
                 except:
                     continue
