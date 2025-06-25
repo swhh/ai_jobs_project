@@ -10,13 +10,8 @@ from googleapiclient.errors import HttpError
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/documents"]
 
-# The ID of a sample document.
-DOCUMENT_ID = "195j9eDD3ccgjQRttHhJPymLJUCOUjs-jmwTrekvdjFE"
-
-TEST_DOC = """This is a test"""
-
-
 async def create_google_doc(title):
+    """Create google doc and return document_id"""
     def _create_doc():
         try:
           service = create_docs_service()       # create service in this thread
@@ -33,9 +28,7 @@ async def create_google_doc(title):
     
 
 async def update_google_doc(document_id, body_text):
-    """
-    Asynchronously updates a Google Doc by inserting text at the beginning.
-    """
+    """Update google doc with document_id with body_text"""
     def _update_doc():
         try:
             service = create_docs_service() 
@@ -60,9 +53,7 @@ async def update_google_doc(document_id, body_text):
 
 
 def create_docs_service():
-  """Shows basic usage of the Docs API.
-  Prints the title of a sample document.
-  """
+  """Create and return doc service"""
   creds = None
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first

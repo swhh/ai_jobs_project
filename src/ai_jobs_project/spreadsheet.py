@@ -10,10 +10,6 @@ from utils import Job, JobType
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-
-# The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-SAMPLE_RANGE_NAME = "Class Data!A2:Z"
 SPREADSHEET_ID = "1lLvlU7MPXryelDDKvY1hhggb3hTWCW79dy3mlX0Pp60"
 
 def create_test_job():
@@ -72,8 +68,7 @@ def create_spreadsheet(service, title: str, columns: list[str], sheet_name: str 
     range_name = f'{sheet_name}!A1'
     body = {
         'values': [columns]
-    }
-    
+    } 
     # Update the headers
     service.spreadsheets().values().update(
         spreadsheetId=spreadsheet_id,
@@ -86,6 +81,7 @@ def create_spreadsheet(service, title: str, columns: list[str], sheet_name: str 
 
 
 def update_sheet(service, spreadsheet_id, rows, range):
+    """Update spreadsheet with id spreadsheet_id with rows across column range range"""
     body = {
         'values': rows
     }
@@ -105,9 +101,7 @@ def update_sheet(service, spreadsheet_id, rows, range):
 
 
 def create_sheet_service():
-  """Shows basic usage of the Sheets API.
-  Prints values from a sample spreadsheet.
-  """
+  """Create and return Google sheets service instance"""
   creds = None
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first

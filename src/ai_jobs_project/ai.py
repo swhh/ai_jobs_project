@@ -7,13 +7,12 @@ from google import genai
 from google.genai.types import Tool, GenerateContentConfig
 import validators
 
-from docs import create_docs_service, create_google_doc, update_google_doc
+from docs import create_google_doc, update_google_doc
 from spreadsheet import create_sheet_service, create_rows, SPREADSHEET_ID, update_sheet
 from utils import Job, cover_letter_templates
 
 CV = ""
-with open('cv.txt') as f:
-    CV = f.read()
+
 
 model_id = "gemini-2.0-flash"
 test_link = "https://news.ycombinator.com/item?id=44159528"
@@ -194,6 +193,8 @@ async def main():
     store_jobs_in_spreadsheet(sheet_service, SPREADSHEET_ID, rows) # store job info and links to cover letters in spreadsheet
 
 if __name__ == "__main__":
+    with open('cv.txt') as f:
+        CV = f.read()
     asyncio.run(main())
 
 
