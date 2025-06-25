@@ -1,3 +1,4 @@
+import asyncio
 import os.path
 
 from google.auth.transport.requests import Request
@@ -15,41 +16,33 @@ DOCUMENT_ID = "195j9eDD3ccgjQRttHhJPymLJUCOUjs-jmwTrekvdjFE"
 TEST_DOC = """This is a test"""
 
 
-def create_google_doc(service, title: str) -> str | None:
-    """
-    Creates a new Google Doc with a title.
+async def create_google_doc(title):
+    def _create_doc():
+        try:
+          service = create_docs_service()       # create service in this thread
+          doc_body = {'title': title}
+          doc = service.documents().create(body=doc_body).execute()
+          document_id = doc.get('documentId')
+          print(f"Created document with title '{doc.get('title')}' and ID: {document_id}")
+          return document_id
+        except:
+           return ""
 
-    Args:
-        service: The authenticated Google Docs API service object.
-        title: The title of the new Google Doc.
-
-    Returns:
-        The ID of the newly created document, or None if an error occurred.
-    """
-    try:
-        # 1. Create a new document with the specified title
-        doc_body = {
-            'title': title
-        }
-        doc = service.documents().create(body=doc_body).execute()
-        document_id = doc.get('documentId')
-        print(f"Created document with title '{doc.get('title')}' and ID: {document_id}")
-        return document_id
-
-    except HttpError as err:
-        print(f"An error occurred: {err}")
-        return None
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, _create_doc)
     
 
-def update_google_doc(service, document_id, body_text):
+async def update_google_doc(document_id, body_text):
+    """
+    Asynchronously updates a Google Doc by inserting text at the beginning.
+    """
+    def _update_doc():
         try:
-              # 2. Insert the raw text into the document at the beginning
+            service = create_docs_service() 
             requests = [
                 {
                     'insertText': {
-                        'location': {
-                            'index': 1,  # Insert at the beginning of the document body
-                        },
+                        'location': {'index': 1},
                         'text': body_text
                     }
                 }
@@ -58,11 +51,12 @@ def update_google_doc(service, document_id, body_text):
                 documentId=document_id,
                 body={'requests': requests}
             ).execute()
-
             print(f"Successfully inserted text into document: {document_id}")
         except Exception as e:
-           print(f"Error occurred: {e}")
-  
+            print(f"Error occurred: {e}")
+
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, _update_doc)
 
 
 def create_docs_service():
