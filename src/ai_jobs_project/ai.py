@@ -5,6 +5,7 @@ import re
 
 from google import genai
 from google.genai.types import Tool, GenerateContentConfig
+from pydantic import ValidationError
 import validators
 
 from docs import create_google_doc, update_google_doc
@@ -12,10 +13,7 @@ from spreadsheet import create_sheet_service, create_rows, SPREADSHEET_ID, updat
 from utils import Job, cover_letter_templates
 
 CV = ""
-
-
 model_id = "gemini-2.0-flash"
-test_link = "https://news.ycombinator.com/item?id=44159528"
 url_context_tool = Tool(
     url_context = genai.types.UrlContext
 )
@@ -25,8 +23,6 @@ GOOGLE_DOCS_LINK = "https://docs.google.com/document/d/"
 
 def process_response(response_text):
     """Parse response and return iterable of Job instances"""
-    # Clean the response text by removing markdown and finding the JSON array
-    # Remove any markdown code block indicators
     response_text = re.sub(r'```json\n?|\n?```', '', response_text)
     # Find the JSON array in the text
     json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
@@ -40,8 +36,10 @@ def process_response(response_text):
                 try:
                     job = Job(**job_data) # Convert each dictionary into a Job object
                     jobs.append(job)
-                except:
-                    continue
+                except ValidationError as e:
+                    print("Validation error:", e)
+                except Exception as e:
+                    print(e)
             return jobs
         except:
             return ""
@@ -102,7 +100,7 @@ async def write_cover_letter(job):
 
 async def write_cover_letters(jobs):
     """Write cover letters for the jobs"""
-    tasks = [write_cover_letter(job) for job in jobs]
+    tasks = (write_cover_letter(job) for job in jobs)
     return await asyncio.gather(*tasks)
 
 async def follow_up_link(job):
@@ -136,7 +134,7 @@ async def follow_up_link(job):
  
 async def follow_up_links(jobs):
     """Follow up links to get more info on the jobs"""
-    tasks = [follow_up_link(job) for job in jobs]
+    tasks = (follow_up_link(job) for job in jobs)
     return await asyncio.gather(*tasks)
 
 def store_jobs_in_spreadsheet(service, spreadsheet_id, rows):
@@ -153,7 +151,7 @@ async def store_cover_letter_in_doc(cover_letter, title):
 
 async def store_cover_letters_in_docs(cover_letters, titles):
     """Store cover letters in a Google Doc. Return links"""
-    tasks = [store_cover_letter_in_doc(letter, title) for letter, title in zip(cover_letters, titles)]
+    tasks = (store_cover_letter_in_doc(letter, title) for letter, title in zip(cover_letters, titles))
     return await asyncio.gather(*tasks)
 
 
