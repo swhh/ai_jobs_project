@@ -11,6 +11,7 @@ class JobType(str, enum.Enum):
     AI_DEVELOPER = "AI Developer"
     AI_ENGINEER = "AI Engineer"
 
+
 class Job(BaseModel):
     job_type: JobType = Field(description="The type of job")
     job_title: str = Field(description="The job title")
@@ -27,7 +28,8 @@ class Job(BaseModel):
 
 
 cover_letter_templates = {
-    job_type: "letter_templates/" + "_".join(job_type.value.lower().split(' ')) + "_template.txt" 
+    job_type: "letter_templates/"
+    + "_".join(job_type.value.lower().split(" "))
+    + "_template.txt"
     for job_type in JobType
 }
-
