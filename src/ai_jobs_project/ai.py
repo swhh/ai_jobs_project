@@ -40,7 +40,8 @@ def process_response(response_text):
                     print(e)
             return jobs
         except:
-            return ""
+            return []
+    return []
 
 
 def fetch_jobs(link):
@@ -184,6 +185,10 @@ async def main():
 
     if response:
         jobs = process_response(response.text)
+        if not jobs:
+            print("No jobs found")
+            print(response.text)
+            return
     else:
         print("No jobs found")
         return
