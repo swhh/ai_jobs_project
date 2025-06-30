@@ -1,6 +1,8 @@
+import argparse
 import asyncio
 import os
 
+import aiofiles
 from google import genai
 from google.genai.types import Tool, GenerateContentConfig
 import validators
@@ -14,20 +16,20 @@ model_id = "gemini-2.0-flash"
 url_context_tool = Tool(url_context=genai.types.UrlContext)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 GOOGLE_DOCS_LINK = "https://docs.google.com/document/d/"
-USER_PROFILE = "a British junior Python developer and product manager who is looking to work for a startup in the UK or Europe, preferably in a job with a focus on AI."
+USER_PROFILE = """"a British junior Python developer and product manager who is looking to work for a startup in the UK or Europe, 
+                preferably in a job with a focus on AI."""
 
 
-def fetch_jobs_content(link):
+def fetch_jobs_content(link, user_profile = USER_PROFILE):
     """Fetch jobs from a link"""
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
         response = client.models.generate_content(
             model=model_id,
-            contents=f"""Follow this link ({link}) and find all jobs on the page suitable for {USER_PROFILE}.
-            Return the details of all relevant jobs. For each job, provide a value for each of the following attributes: {Job.model_fields.items()}
-    Where a value for an attribute is not available, put a default value that is falsy in Python e.g. the empty string or an empty list.
-    The job source should be the name of the host of the link e.g. Hacker News, LinkedIn {link}.
-    Return nothing else besides the jobs information""",
+            contents=f"""Follow this link ({link}) and find all jobs on the page suitable for {user_profile}.
+            Return all details of all suitable jobs. 
+            Include the job source for each job. The job source should be the name of the host of the link e.g. Hacker News, LinkedIn.
+            Return nothing else besides the jobs information""",
             config=GenerateContentConfig(
                 tools=[url_context_tool],
                 response_modalities=["TEXT"],
@@ -44,9 +46,11 @@ def structure_jobs_content(jobs_content):
         client = genai.Client(api_key=GEMINI_API_KEY)
         response = client.models.generate_content(
             model=model_id,
-            contents=f"""Return the job information in structured json format. 
-            {jobs_content}
-            Return nothing else.""",
+            contents=f"""Return the job information in structured json format for the text below. 
+            For each job, provide a value for each of the following attributes: {Job.model_fields.items()}
+            Where a value for an attribute is not available, 
+            put a default value that is falsy in Python e.g. the empty string or an empty list.
+            {jobs_content}""",
             config={
                 "response_mime_type": "application/json",
                 "response_schema": list[Job],
@@ -64,10 +68,10 @@ async def write_cover_letter(job):
         raise TypeError
 
     cover_letter_link = cover_letter_templates.get(job.job_type, "")
-    if not cover_letter_link:
+    if not cover_letter_link or not CV:
         return ""
-    with open(cover_letter_link) as f:
-        cover_letter_template = f.read()
+    async with aiofiles.open(cover_letter_link, mode = 'r') as f:
+        cover_letter_template = await f.read()
 
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
@@ -171,6 +175,11 @@ async def main():
     if not GEMINI_API_KEY:
         print("Please set a Gemini API key")
         return
+    
+    parser = argparse.ArgumentParser(description='AI Jobs Project - Find and process job listings')
+    parser.add_argument('user_profile', help='Profile of the user for whom the program is looking for jobs')
+    args = parser.parse_args()
+    user_profile = args.user_profile if args.user_profile else USER_PROFILE
 
     link = input("Provide a jobs link: ")
     while True:
@@ -178,17 +187,18 @@ async def main():
             break
         link = input(f"{link} is not a valid address. Please provide a valid link: ")
 
-    response = fetch_jobs_content(link)
+    response = fetch_jobs_content(link, user_profile=user_profile)
 
     if response and response.text:
         response = structure_jobs_content(response.text)
-        jobs = response.parsed
-        if not jobs:
+        if response and response.parsed:
+            jobs = response.parsed
+            if not jobs:
+                print("No jobs found")
+                return
+        else:
             print("No jobs found")
             return
-    else:
-        print("No jobs found")
-        return
 
     # get more info on jobs from job link pages
     updated_jobs = await follow_up_links(jobs)
