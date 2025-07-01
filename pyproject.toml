@@ -3,7 +3,7 @@ name = "ai-jobs-project"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "swhh",email = "email@notprovided.com"}
+    {name = "swhh",email = ""}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -14,7 +14,9 @@ dependencies = [
     "google-api-python-client (>=2.172.0,<3.0.0)",
     "google-generativeai (>=0.8.5,<0.9.0)",
     "google-genai (>=1.21.1,<2.0.0)",
-    "validators (>=0.35.0,<0.36.0)"
+    "validators (>=0.35.0,<0.36.0)",
+    "black (>=25.1.0,<26.0.0)",
+    "aiofiles (>=24.1.0,<25.0.0)"
 ]
 
 [tool.poetry]
