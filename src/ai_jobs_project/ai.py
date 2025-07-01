@@ -82,6 +82,7 @@ async def write_cover_letter(job):
         The job type is: {job.job_type}.
         The company description is: {job.company_description}.
         The technologies used in the job are: {job.technologies}.
+        The job source is {job.job_source}.
         The cover letter is for the person with the following CV: {CV}.
         The cover letter should include references to elements of the technologies, 
         the job and company descriptions and relate these elements to elements in the user CV.
