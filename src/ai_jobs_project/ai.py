@@ -12,7 +12,7 @@ from spreadsheet import create_sheet_service, create_rows, SPREADSHEET_ID, updat
 from utils import Job, cover_letter_templates
 
 CV = ""
-model_id = "gemini-2.0-flash"
+model_id = "gemini-2.5-flash"
 url_context_tool = Tool(url_context=genai.types.UrlContext)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 GOOGLE_DOCS_LINK = "https://docs.google.com/document/d/"
@@ -175,11 +175,11 @@ async def main():
         return
     
     parser = argparse.ArgumentParser(description='AI Jobs Project - Find and process job listings')
-    parser.add_argument('--user_profile', help='Profile of the user for whom the program is looking for jobs')
-    parser.add_argument('--cover_letters', help='Whether to generate cover letters for the jobs', type=bool)
+    parser.add_argument('--user_profile', help='Profile of the user for whom the program is looking for jobs', type=str, default=USER_PROFILE)
+    parser.add_argument('--cover_letters', help='Whether to generate cover letters for the jobs', type=bool, default=False)
     args = parser.parse_args()
-    user_profile = args.user_profile if args.user_profile else USER_PROFILE
-    cover_letters = args.cover_letters if args.cover_letters else False
+    user_profile = args.user_profile
+    cover_letters = args.cover_letters
 
     link = input("Provide a jobs link: ")
     while True:
