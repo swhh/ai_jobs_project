@@ -173,9 +173,6 @@ async def main():
     if not sheet_service:
         print("Google spreadsheets is not available")
         return
-    if not GEMINI_API_KEY:
-        print("Please set a Gemini API key")
-        return
     
     parser = argparse.ArgumentParser(description='AI Jobs Project - Find and process job listings')
     parser.add_argument('--user_profile', help='Profile of the user for whom the program is looking for jobs')
