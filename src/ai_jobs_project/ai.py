@@ -16,7 +16,7 @@ model_id = "gemini-2.0-flash"
 url_context_tool = Tool(url_context=genai.types.UrlContext)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 GOOGLE_DOCS_LINK = "https://docs.google.com/document/d/"
-USER_PROFILE = """"a British junior Python developer and product manager who is looking to work for a startup in the UK or Europe, 
+USER_PROFILE = """"a British junior Python software engineer and product manager who is looking to work for a startup in the UK or the EU, 
                 preferably in a job with a focus on AI."""
 
 
@@ -27,7 +27,7 @@ def fetch_jobs_content(link, user_profile = USER_PROFILE):
         response = client.models.generate_content(
             model=model_id,
             contents=f"""Follow this link ({link}) and find all jobs on the page suitable for {user_profile}.
-            Return all details of all suitable jobs. 
+            Return all details of all suitable jobs. Include any provided relevant email addresses, company or job links and a company description where available.
             Include the job source for each job. The job source should be the name of the host of the link e.g. Hacker News, LinkedIn.
             Return nothing else besides the jobs information""",
             config=GenerateContentConfig(
@@ -86,7 +86,7 @@ async def write_cover_letter(job):
         The cover letter is for the person with the following CV: {CV}.
         The cover letter should include references to elements of the technologies, 
         the job and company descriptions and relate these elements to elements in the user CV.
-        Do NOT claim that the user has a skill or knowledge of or experience with a technology if it isnot referenced in the CV. 
+        Do NOT claim that the user has a skill or knowledge of or experience with a technology if it is not referenced in the CV. 
         Return only the cover letter and nothing else.
         """,
         )
@@ -178,9 +178,11 @@ async def main():
         return
     
     parser = argparse.ArgumentParser(description='AI Jobs Project - Find and process job listings')
-    parser.add_argument('user_profile', help='Profile of the user for whom the program is looking for jobs')
+    parser.add_argument('--user_profile', help='Profile of the user for whom the program is looking for jobs')
+    parser.add_argument('--cover_letters', help='Whether to generate cover letters for the jobs', type=bool)
     args = parser.parse_args()
     user_profile = args.user_profile if args.user_profile else USER_PROFILE
+    cover_letters = args.cover_letters if args.cover_letters else False
 
     link = input("Provide a jobs link: ")
     while True:
@@ -205,25 +207,31 @@ async def main():
     updated_jobs = await follow_up_links(jobs)
 
     # AI generate cover letters
-    letters = await write_cover_letters(updated_jobs)
+    if cover_letters:
+        letters = await write_cover_letters(updated_jobs)
 
     # create cover letter doc titles
-    titles = [f"{job.job_title} at {job.company} Cover Letter" for job in updated_jobs]
+        titles = [f"{job.job_title} at {job.company} Cover Letter" for job in updated_jobs]
 
-    letter_ids = await store_cover_letters_in_docs(letters, titles)
+        letter_ids = await store_cover_letters_in_docs(letters, titles)
 
     rows = create_rows(updated_jobs)
 
-    # add cover letter links
-    rows = [
-        row + [GOOGLE_DOCS_LINK + letter_id] for row, letter_id in zip(rows, letter_ids)
-    ]
+    if cover_letters:
+        # add cover letter links
+        rows = [
+            row + [GOOGLE_DOCS_LINK + letter_id] for row, letter_id in zip(rows, letter_ids)
+        ]
 
     # store job info and links to cover letters in spreadsheet
     store_jobs_in_spreadsheet(sheet_service, SPREADSHEET_ID, rows)
 
 
 if __name__ == "__main__":
+    if not GEMINI_API_KEY:
+        raise ValueError("Please set a Gemini API key")
+    
     with open("cv.txt") as f:
         CV = f.read()
+
     asyncio.run(main())
